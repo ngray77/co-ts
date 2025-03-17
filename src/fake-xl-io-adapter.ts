@@ -1,5 +1,5 @@
 import { Model, Record } from './model';
-import { RecordChange, EventSequence } from './eventManager';
+import { RecordChange, EventSequence } from './event-manager';
 
 export interface IAdapter {
   getModel(recordType: string): Model;

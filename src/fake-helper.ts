@@ -1,13 +1,14 @@
-import { Record } from './model';
-import { RecordChange, RecordSequence, EventSequence } from './eventManager';
 import { RecordTypeDefinition } from './engine';
+import { EventSequence, RecordChange, RecordSequence } from './event-manager';
+import { HelperInterface } from './helper.interface';
+import { Record } from './model';
 
 /**
- * Plugins consume configured upstream sources, reflect on
- * their own record type, and yield added/changed/deleted
- * events of their record type.
+ * FakeHelper implements HelperInterface to consume configured upstream sources,
+ * reflect on its own record type, and yield added/changed/deleted
+ * events of its record type.
  */
-export class FakePlugin {
+export class FakeHelper implements HelperInterface {
   private recordDefinition: RecordTypeDefinition;
 
   constructor(rd: RecordTypeDefinition) {
@@ -20,11 +21,11 @@ export class FakePlugin {
     const changes: RecordChange[] = [];
     let qty = Math.min(Math.max(1, (Math.floor(Math.random() * 3) + 1)), 3);
     
-    while (qty-- > 0 && c.changedRecord.Body.length < 50) {
+    while (qty-- > 0 && c.changedRecord.body.length < 50) {
       const newRec = new Record();
-      newRec.Id = RecordSequence.next();
-      newRec.ParentId = c.changedRecord.Id;
-      newRec.Body = ` ${c.changedRecord.Body}:${qty.toString()}`;
+      newRec.id = RecordSequence.next();
+      newRec.parentId = c.changedRecord.id;
+      newRec.body = ` ${c.changedRecord.body}:${qty.toString()}`;
 
       const newChg = new RecordChange(
         c.eventId,

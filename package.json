@@ -15,5 +15,10 @@
     "@types/node": "^20.11.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@langchain/langgraph": "^0.2.55",
+    "@langchain/openai": "^0.4.4",
+    "dotenv": "^16.4.7"
   }
 }

@@ -1,7 +1,9 @@
+import { FakeHelper } from './fake-helper';
+import { Helper } from './Helper';
+import { HelperInterface } from './helper.interface';
+import { EventManager, RecordChange } from './event-manager';
+import { IAdapter } from './fake-xl-io-adapter';
 import { Model } from './model';
-import { EventManager, RecordChange } from './eventManager';
-import { FakePlugin } from './fakePlugin';
-import { IAdapter } from './fakeXLIOAdapter';
 
 export class RecordTypeDefinition {
   public recordType: string = "";
@@ -27,7 +29,7 @@ export class Engine {
     this.eventManager.events.enqueue(recordChange);
   }
 
-  public run(): void {
+  public async run(): Promise<void> {
     let rc: RecordChange | undefined;
     
     while (this.eventManager.events.count > 0) {
@@ -43,14 +45,19 @@ export class Engine {
       );
 
       for (const sub of subscribers) {
-        // Run each plugin
-        const fp = new FakePlugin(sub);
-        const newRCs = fp.process(rc);
-
-        while (newRCs.length > 0) {
-          // Publish new returned events to the queue
-          const newRC = newRCs[0];
-          newRCs.splice(0, 1);
+        // Create helper (either FakeHelper or real Helper)
+        const helper: HelperInterface = //Math.random() > 0.5 ? 
+          //new FakeHelper(sub) : 
+          new Helper(sub);
+        
+        // Process the record change
+        const newRCsPromise = helper.process(rc);
+        
+        // Handle both synchronous and asynchronous results
+        const newRCs = await Promise.resolve(newRCsPromise);
+        
+        // Enqueue all new record changes
+        for (const newRC of newRCs) {
           this.enqueueEvent(newRC);
         }
       }

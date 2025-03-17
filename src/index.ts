@@ -1,7 +1,9 @@
+import "dotenv/config";
+
+import { Engine, EngineConfig, RecordTypeDefinition } from './engine';
+import { RecordChange, RecordSequence } from './event-manager';
+import { FakeXLIOAdapter } from './fake-xl-io-adapter';
 import { Model, Record } from './model';
-import { RecordChange, RecordSequence } from './eventManager';
-import { EngineConfig, Engine, RecordTypeDefinition } from './engine';
-import { FakeXLIOAdapter } from './fakeXLIOAdapter';
 
 // Initialize the configuration
 const cfg = new EngineConfig();
@@ -55,20 +57,23 @@ fakeXL.fakeFileData.forEach(m => m.prettyConsole());
 
 // Run the engine for the starting goal
 fakeXL.getRecordChangeEvents(goalRd.recordType).forEach(c => eng.enqueueEvent(c));
-eng.run();
-cfg.registeredAdapters.forEach(ra => ra.clearDirty());
+// Use an async IIFE to handle the async run method
+(async () => {
+  await eng.run();
+  cfg.registeredAdapters.forEach(ra => ra.clearDirty());
 
-console.log("\n" + "And here is the Result after the engine runs, a fully populated model".padEnd(100, '*'));
-fakeXL.fakeFileData.forEach(m => m.prettyConsole());
+  console.log("\n" + "And here is the Result after the engine runs, a fully populated model".padEnd(100, '*'));
+  fakeXL.fakeFileData.forEach(m => m.prettyConsole());
 
-// Retrigger the engine by changing one record
-console.log("\n" + "Retrigger the engine by changing one record".padEnd(100, '*'));
-const firstNeedRecord = fakeXL.getModel(needRd.recordType).Records[0];
-if (firstNeedRecord) {
-  firstNeedRecord.Body = "A little tweak";
-  fakeXL.getRecordChangeEvents(needRd.recordType).forEach(c => eng.enqueueEvent(c));
-  fakeXL.fakeFileData.forEach(m => m.prettyConsole());
-  eng.run();
-  console.log("\n" + "And the result of the 'Retrigger' after the engine runs".padEnd(100, '*'));
-  fakeXL.fakeFileData.forEach(m => m.prettyConsole());
-}
+  // Retrigger the engine by changing one record
+  console.log("\n" + "Retrigger the engine by changing one record".padEnd(100, '*'));
+  const firstNeedRecord = fakeXL.getModel(needRd.recordType).Records[0];
+  if (firstNeedRecord) {
+    firstNeedRecord.Body = "A little tweak";
+    fakeXL.getRecordChangeEvents(needRd.recordType).forEach(c => eng.enqueueEvent(c));
+    fakeXL.fakeFileData.forEach(m => m.prettyConsole());
+    await eng.run();
+    console.log("\n" + "And the result of the 'Retrigger' after the engine runs".padEnd(100, '*'));
+    fakeXL.fakeFileData.forEach(m => m.prettyConsole());
+  }
+})().catch(error => console.error("Error running engine:", error));
